@@ -1,9 +1,9 @@
 import type {
   Event,
   FlutterTestOutput,
-  GroupTree,
-  SuiteTree,
-  TestTree,
+  GroupNode,
+  SuiteNode,
+  TestNode,
 } from "./types.ts";
 import { TextLineStream } from "@std/streams";
 
@@ -32,7 +32,7 @@ import { TextLineStream } from "@std/streams";
 export function parseSync(
   output: string | string[] | Generator<string>,
 ): FlutterTestOutput {
-  const trees = new Map<number, SuiteTree | GroupTree | TestTree>();
+  const trees = new Map<number, SuiteNode | GroupNode | TestNode>();
   const allEvents: Event[] = [];
   let totalDurationInSeconds = -1;
 
@@ -77,7 +77,7 @@ export function parseSync(
 export async function parseAsync(
   filePathOrStream: string | ReadableStream<Uint8Array<ArrayBuffer>>,
 ): Promise<FlutterTestOutput> {
-  const trees = new Map<number, SuiteTree | GroupTree | TestTree>();
+  const trees = new Map<number, SuiteNode | GroupNode | TestNode>();
   const allEvents: Event[] = [];
   let totalDurationInSeconds = -1;
 
@@ -101,7 +101,7 @@ export async function parseAsync(
 }
 
 function addEventToTrees(
-  trees: Map<number, SuiteTree | GroupTree | TestTree>,
+  trees: Map<number, SuiteNode | GroupNode | TestNode>,
   event: Event,
 ) {
   switch (event.type) {
@@ -109,7 +109,7 @@ function addEventToTrees(
       break;
 
     case "suite": {
-      const suiteTree: SuiteTree = {
+      const suiteTree: SuiteNode = {
         ...event,
         children: [],
       };
@@ -118,7 +118,7 @@ function addEventToTrees(
     }
 
     case "group": {
-      const groupTree: GroupTree = {
+      const groupTree: GroupNode = {
         ...event,
         children: [],
       };
@@ -140,9 +140,9 @@ function addEventToTrees(
     }
 
     case "testStart": {
-      const testTree: TestTree = {
+      const testTree: TestNode = {
         ...event,
-        suite: trees.get(event.test.suiteID) as SuiteTree,
+        suite: trees.get(event.test.suiteID) as SuiteNode,
         parent: [],
       };
       trees.set(event.test.id, testTree);

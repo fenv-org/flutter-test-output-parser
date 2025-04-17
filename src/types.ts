@@ -2,7 +2,7 @@
  * Represents the parsed output of a Flutter test command.
  */
 export type FlutterTestOutput = {
-  trees: Map<number, SuiteTree | GroupTree | TestTree>;
+  trees: Map<number, SuiteNode | GroupNode | TestNode>;
   allEvents: Event[];
   totalDurationInSeconds: number;
 };
@@ -10,24 +10,25 @@ export type FlutterTestOutput = {
 /**
  * Represents a suite in the Flutter test output.
  */
-export type SuiteTree = SuiteEvent & {
-  children: (GroupTree | TestTree)[];
+export type SuiteNode = SuiteEvent & {
+  children: (GroupNode | TestNode)[];
 };
 
 /**
  * Represents a group in the Flutter test output.
  */
-export type GroupTree = GroupEvent & {
-  parent?: GroupTree | SuiteTree;
-  children: (GroupTree | TestTree)[];
+export type GroupNode = GroupEvent & {
+  suite: SuiteNode;
+  parent?: GroupNode | SuiteNode;
+  children: (GroupNode | TestNode)[];
 };
 
 /**
  * Represents a test in the Flutter test output.
  */
-export type TestTree = TestStartEvent & {
-  suite: SuiteTree;
-  parent: GroupTree[];
+export type TestNode = TestStartEvent & {
+  suite: SuiteNode;
+  parent: GroupNode[];
   done?: TestDoneEvent;
   print?: MessageEvent[];
   error?: ErrorEvent[];
