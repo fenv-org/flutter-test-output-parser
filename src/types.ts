@@ -48,8 +48,18 @@ export type Event =
   | DoneEvent;
 
 type EventCommon = {
-  time: number;
   type: string;
+  time?: number;
+};
+
+/**
+ * Represents the metadata of an event.
+ *
+ * @deprecated
+ */
+type Metadata = {
+  skip: boolean;
+  skipReason: string | null;
 };
 
 /**
@@ -77,17 +87,13 @@ export type SuiteEvent = EventCommon & {
 /**
  * Represents the start of a test in the Flutter test output.
  */
-export type TestStartEvent = EventCommon & {
+export type TestStartEvent = EventCommon & Metadata & {
   type: "testStart";
   test: {
     id: number;
     name: string;
     suiteID: number;
     groupIDs: number[];
-    metadata: {
-      skip: boolean;
-      skipReason: null | string;
-    };
     line: number | null;
     column: number | null;
     url: string | null;
@@ -119,17 +125,13 @@ export type TestDoneEvent = EventCommon & {
 /**
  * Represents a group element in the Flutter test output.
  */
-export type GroupEvent = EventCommon & {
+export type GroupEvent = EventCommon & Metadata & {
   type: "group";
   group: {
     id: number;
     suiteID: number;
     parentID: number | null;
     name: string;
-    metadata: {
-      skip: boolean;
-      skipReason: null | string;
-    };
     testCount: number;
     line: number | null;
     column: number | null;
