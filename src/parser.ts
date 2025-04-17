@@ -1,5 +1,5 @@
 import type {
-  Element,
+  Event,
   FlutterTestOutput,
   GroupTree,
   SuiteTree,
@@ -40,10 +40,10 @@ export function parseSync(
   }
 
   for (const line of output) {
-    const element = JSON.parse(line) as Element;
-    addElementToTrees(trees, element);
-    if (element.type === "done") {
-      totalDurationInSeconds = element.time / 1000;
+    const event = JSON.parse(line) as Event;
+    addEventToTrees(trees, event);
+    if (event.type === "done") {
+      totalDurationInSeconds = (event.time ?? 0) / 1000;
     }
   }
 
@@ -86,47 +86,47 @@ export async function parseAsync(
       .pipeThrough(new TextDecoderStream())
       .pipeThrough(new TextLineStream())
   ) {
-    const element = JSON.parse(line) as Element;
-    addElementToTrees(trees, element);
-    if (element.type === "done") {
-      totalDurationInSeconds = element.time / 1000;
+    const event = JSON.parse(line) as Event;
+    addEventToTrees(trees, event);
+    if (event.type === "done") {
+      totalDurationInSeconds = (event.time ?? 0) / 1000;
     }
   }
 
   return { trees, totalDurationInSeconds };
 }
 
-function addElementToTrees(
+function addEventToTrees(
   trees: Map<number, SuiteTree | GroupTree | TestTree>,
-  element: Element,
+  event: Event,
 ) {
-  switch (element.type) {
+  switch (event.type) {
     case "start":
       break;
 
     case "suite": {
       const suiteTree: SuiteTree = {
-        ...element,
+        ...event,
         children: [],
       };
-      trees.set(element.suite.id, suiteTree);
+      trees.set(event.suite.id, suiteTree);
       break;
     }
 
     case "group": {
       const groupTree: GroupTree = {
-        ...element,
+        ...event,
         children: [],
       };
-      trees.set(element.group.id, groupTree);
-      if (element.group.parentID) {
-        const parent = trees.get(element.group.parentID);
+      trees.set(event.group.id, groupTree);
+      if (event.group.parentID) {
+        const parent = trees.get(event.group.parentID);
         if (parent?.type === "suite" || parent?.type === "group") {
           groupTree.parent = parent;
           parent.children.push(groupTree);
         }
       } else {
-        const parent = trees.get(element.group.suiteID);
+        const parent = trees.get(event.group.suiteID);
         if (parent?.type === "suite") {
           groupTree.parent = parent;
           parent.children.push(groupTree);
@@ -137,12 +137,12 @@ function addElementToTrees(
 
     case "testStart": {
       const testTree: TestTree = {
-        ...element,
-        suite: trees.get(element.test.suiteID) as SuiteTree,
+        ...event,
+        suite: trees.get(event.test.suiteID) as SuiteTree,
         parent: [],
       };
-      trees.set(element.test.id, testTree);
-      for (const groupID of element.test.groupIDs) {
+      trees.set(event.test.id, testTree);
+      for (const groupID of event.test.groupIDs) {
         const group = trees.get(groupID);
         if (group?.type === "group") {
           testTree.parent.push(group);
@@ -152,28 +152,28 @@ function addElementToTrees(
     }
 
     case "testDone": {
-      const testCandidate = trees.get(element.testID);
+      const testCandidate = trees.get(event.testID);
       if (testCandidate?.type === "testStart") {
-        testCandidate.done = element;
+        testCandidate.done = event;
       }
       break;
     }
 
     case "print": {
-      const testCandidate = trees.get(element.testID);
+      const testCandidate = trees.get(event.testID);
       if (testCandidate?.type === "testStart") {
         testCandidate.print = testCandidate.print || [];
-        testCandidate.print.push(element);
+        testCandidate.print.push(event);
       }
       break;
     }
 
     case "error": {
-      const testCandidate = trees.get(element.testID);
+      const testCandidate = trees.get(event.testID);
       if (testCandidate?.type === "testStart") {
         testCandidate.error = testCandidate.error
-          ? [...testCandidate.error, element]
-          : [element];
+          ? [...testCandidate.error, event]
+          : [event];
       }
       break;
     }
