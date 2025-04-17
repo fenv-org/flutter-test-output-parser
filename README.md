@@ -1,3 +1,8 @@
+[![JSR](https://jsr.io/badges/@fenv-org/flutter-test-output-parser)](https://jsr.io/@fenv-org/flutter-test-output-parser)
+[![JSR Score](https://jsr.io/badges/@fenv-org/flutter-test-output-parser/score)](https://jsr.io/@fenv-org/flutter-test-output-parser)
+[![Deno](https://img.shields.io/badge/deno-v2.2.10-brightgreen.svg)](https://deno.land/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 # Flutter Test Output Parser
 
 A Deno library for parsing Flutter test JSON output into a structured format.
