@@ -1,3 +1,8 @@
+export type FlutterTestOutput = {
+  trees: Map<number, SuiteTree | GroupTree | TestTree>;
+  totalDurationInSeconds: number;
+};
+
 export type SuiteTree = ElementSuite & {
   children: (GroupTree | TestTree)[];
 };
