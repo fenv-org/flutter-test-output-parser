@@ -33,6 +33,7 @@ export function parseSync(
   output: string | string[] | Generator<string>,
 ): FlutterTestOutput {
   const trees = new Map<number, SuiteTree | GroupTree | TestTree>();
+  const allEvents: Event[] = [];
   let totalDurationInSeconds = -1;
 
   if (typeof output === "string") {
@@ -45,9 +46,10 @@ export function parseSync(
     if (event.type === "done") {
       totalDurationInSeconds = (event.time ?? 0) / 1000;
     }
+    allEvents.push(event);
   }
 
-  return { trees, totalDurationInSeconds };
+  return { trees, totalDurationInSeconds, allEvents };
 }
 
 /**
@@ -76,6 +78,7 @@ export async function parseAsync(
   filePathOrStream: string | ReadableStream<Uint8Array<ArrayBuffer>>,
 ): Promise<FlutterTestOutput> {
   const trees = new Map<number, SuiteTree | GroupTree | TestTree>();
+  const allEvents: Event[] = [];
   let totalDurationInSeconds = -1;
 
   const stream = typeof filePathOrStream === "string"
@@ -91,9 +94,10 @@ export async function parseAsync(
     if (event.type === "done") {
       totalDurationInSeconds = (event.time ?? 0) / 1000;
     }
+    allEvents.push(event);
   }
 
-  return { trees, totalDurationInSeconds };
+  return { trees, totalDurationInSeconds, allEvents };
 }
 
 function addEventToTrees(

@@ -3,6 +3,7 @@
  */
 export type FlutterTestOutput = {
   trees: Map<number, SuiteTree | GroupTree | TestTree>;
+  allEvents: Event[];
   totalDurationInSeconds: number;
 };
 
