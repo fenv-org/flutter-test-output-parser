@@ -9,14 +9,14 @@ export type FlutterTestOutput = {
 /**
  * Represents a suite in the Flutter test output.
  */
-export type SuiteTree = ElementSuite & {
+export type SuiteTree = SuiteEvent & {
   children: (GroupTree | TestTree)[];
 };
 
 /**
  * Represents a group in the Flutter test output.
  */
-export type GroupTree = ElementGroup & {
+export type GroupTree = GroupEvent & {
   parent?: GroupTree | SuiteTree;
   children: (GroupTree | TestTree)[];
 };
@@ -24,57 +24,60 @@ export type GroupTree = ElementGroup & {
 /**
  * Represents a test in the Flutter test output.
  */
-export type TestTree = ElementTestStart & {
+export type TestTree = TestStartEvent & {
   suite: SuiteTree;
   parent: GroupTree[];
-  done?: ElementTestDone;
-  print?: ElementPrint[];
-  error?: ElementError[];
+  done?: TestDoneEvent;
+  print?: MessageEvent[];
+  error?: ErrorEvent[];
 };
 
 /**
  * Represents an element in the Flutter test output.
  */
-export type Element =
-  | ElementStart
-  | ElementSuite
-  | ElementTest
-  | ElementGroup
-  | ElementTestStart
-  | ElementPrint
-  | ElementTestDone
-  | ElementAllSuites
-  | ElementError
-  | ElementDone;
+export type Event =
+  | StartEvent
+  | SuiteEvent
+  | TestEvent
+  | GroupEvent
+  | TestStartEvent
+  | MessageEvent
+  | TestDoneEvent
+  | AllSuitesEvent
+  | ErrorEvent
+  | DoneEvent;
+
+type EventCommon = {
+  time: number;
+  type: string;
+};
 
 /**
  * Represents the start of a Flutter test run.
  */
-export type ElementStart = {
+export type StartEvent = EventCommon & {
   type: "start";
   protocolVersion: string;
   runnerVersion: string;
   pid: number;
-  time: number;
 };
 
 /**
  * Represents a suite element in the Flutter test output.
  */
-export type ElementSuite = {
+export type SuiteEvent = EventCommon & {
   type: "suite";
   suite: {
     id: number;
     platform: string;
     path: string;
   };
-  time: number;
 };
 
 /**
  * Represents the start of a test in the Flutter test output.
  */
-export type ElementTestStart = {
+export type TestStartEvent = EventCommon & {
   type: "testStart";
   test: {
     id: number;
@@ -92,34 +95,31 @@ export type ElementTestStart = {
     root_column?: number;
     root_url?: string;
   };
-  time: number;
 };
 
 /**
  * Represents the count of all suites in the Flutter test output.
  */
-export type ElementAllSuites = {
+export type AllSuitesEvent = EventCommon & {
   type: "allSuites";
   count: number;
-  time: number;
 };
 
 /**
  * Represents the completion of a test in the Flutter test output.
  */
-export type ElementTestDone = {
+export type TestDoneEvent = EventCommon & {
   type: "testDone";
   testID: number;
   result: "success" | "error" | "failure";
   skipped: boolean;
   hidden: boolean;
-  time: number;
 };
 
 /**
  * Represents a group element in the Flutter test output.
  */
-export type ElementGroup = {
+export type GroupEvent = EventCommon & {
   type: "group";
   group: {
     id: number;
@@ -135,24 +135,22 @@ export type ElementGroup = {
     column: number | null;
     url: string | null;
   };
-  time: number;
 };
 
 /**
  * Represents a print message in the Flutter test output.
  */
-export type ElementPrint = {
+export type MessageEvent = EventCommon & {
   type: "print";
   testID: number;
   messageType: "print";
   message: string;
-  time: number;
 };
 
 /**
  * Represents a test element in the Flutter test output.
  */
-export type ElementTest = {
+export type TestEvent = EventCommon & {
   type: "test";
   error?: string;
   stackTrace?: string;
@@ -162,20 +160,23 @@ export type ElementTest = {
 /**
  * Represents an error in the Flutter test output.
  */
-export type ElementError = {
+export type ErrorEvent = EventCommon & {
   type: "error";
   testID: number;
   error: string;
   stackTrace: string;
   isFailure: boolean;
-  time: number;
 };
 
 /**
  * Represents the completion of a Flutter test run.
  */
-export type ElementDone = {
+export type DoneEvent = EventCommon & {
   type: "done";
   success: boolean;
-  time: number;
+};
+
+export type FutureEvent = EventCommon & {
+  type: string;
+  [key: string]: unknown;
 };
