@@ -1,17 +1,29 @@
+/**
+ * Represents the parsed output of a Flutter test command.
+ */
 export type FlutterTestOutput = {
   trees: Map<number, SuiteTree | GroupTree | TestTree>;
   totalDurationInSeconds: number;
 };
 
+/**
+ * Represents a suite in the Flutter test output.
+ */
 export type SuiteTree = ElementSuite & {
   children: (GroupTree | TestTree)[];
 };
 
+/**
+ * Represents a group in the Flutter test output.
+ */
 export type GroupTree = ElementGroup & {
   parent?: GroupTree | SuiteTree;
   children: (GroupTree | TestTree)[];
 };
 
+/**
+ * Represents a test in the Flutter test output.
+ */
 export type TestTree = ElementTestStart & {
   suite: SuiteTree;
   parent: GroupTree[];
@@ -20,6 +32,9 @@ export type TestTree = ElementTestStart & {
   error?: ElementError[];
 };
 
+/**
+ * Represents an element in the Flutter test output.
+ */
 export type Element =
   | ElementStart
   | ElementSuite
@@ -32,6 +47,9 @@ export type Element =
   | ElementError
   | ElementDone;
 
+/**
+ * Represents the start of a Flutter test run.
+ */
 export type ElementStart = {
   type: "start";
   protocolVersion: string;
@@ -40,6 +58,9 @@ export type ElementStart = {
   time: number;
 };
 
+/**
+ * Represents a suite element in the Flutter test output.
+ */
 export type ElementSuite = {
   type: "suite";
   suite: {
@@ -50,6 +71,9 @@ export type ElementSuite = {
   time: number;
 };
 
+/**
+ * Represents the start of a test in the Flutter test output.
+ */
 export type ElementTestStart = {
   type: "testStart";
   test: {
@@ -71,12 +95,18 @@ export type ElementTestStart = {
   time: number;
 };
 
+/**
+ * Represents the count of all suites in the Flutter test output.
+ */
 export type ElementAllSuites = {
   type: "allSuites";
   count: number;
   time: number;
 };
 
+/**
+ * Represents the completion of a test in the Flutter test output.
+ */
 export type ElementTestDone = {
   type: "testDone";
   testID: number;
@@ -86,6 +116,9 @@ export type ElementTestDone = {
   time: number;
 };
 
+/**
+ * Represents a group element in the Flutter test output.
+ */
 export type ElementGroup = {
   type: "group";
   group: {
@@ -105,6 +138,9 @@ export type ElementGroup = {
   time: number;
 };
 
+/**
+ * Represents a print message in the Flutter test output.
+ */
 export type ElementPrint = {
   type: "print";
   testID: number;
@@ -113,6 +149,9 @@ export type ElementPrint = {
   time: number;
 };
 
+/**
+ * Represents a test element in the Flutter test output.
+ */
 export type ElementTest = {
   type: "test";
   error?: string;
@@ -120,6 +159,9 @@ export type ElementTest = {
   isFailure?: boolean;
 };
 
+/**
+ * Represents an error in the Flutter test output.
+ */
 export type ElementError = {
   type: "error";
   testID: number;
@@ -129,6 +171,9 @@ export type ElementError = {
   time: number;
 };
 
+/**
+ * Represents the completion of a Flutter test run.
+ */
 export type ElementDone = {
   type: "done";
   success: boolean;
