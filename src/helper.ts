@@ -142,3 +142,87 @@ export function totalDuration(doneEvent: DoneEvent): {
   const milliseconds = durationInMillis % 1000;
   return { minutes, seconds, milliseconds };
 }
+
+/**
+ * Finds the earliest start timestamp of a node and its children
+ */
+function findStartTimestamp(
+  table: NodeTable,
+  node: TestNode | GroupNode | SuiteNode,
+): number {
+  if (node.time === undefined) {
+    throw new Error("Time is undefined");
+  }
+
+  if (node.type === "testStart") {
+    return node.time;
+  }
+
+  // For GroupNode and SuiteNode, find the earliest start time among children
+  const children = node.type === "suite"
+    ? childrenOfSuite(table, node)
+    : childrenOfGroup(table, node);
+
+  let earliestStart = node.time;
+  for (const child of children) {
+    const childStart = findStartTimestamp(table, child);
+    if (childStart < earliestStart) {
+      earliestStart = childStart;
+    }
+  }
+
+  return earliestStart;
+}
+
+/**
+ * Finds the latest end timestamp of a node and its children
+ */
+function findEndTimestamp(
+  table: NodeTable,
+  node: TestNode | GroupNode | SuiteNode,
+): number {
+  if (node.time === undefined) {
+    throw new Error("Time is undefined");
+  }
+
+  if (node.type === "testStart") {
+    if (!node.done || node.done.time === undefined) {
+      throw new Error("Test is not done yet");
+    }
+    return node.done.time;
+  }
+
+  // For GroupNode and SuiteNode, find the latest end time among children
+  const children = node.type === "suite"
+    ? childrenOfSuite(table, node)
+    : childrenOfGroup(table, node);
+
+  let latestEnd = node.time;
+  for (const child of children) {
+    const childEnd = findEndTimestamp(table, child);
+    if (childEnd > latestEnd) {
+      latestEnd = childEnd;
+    }
+  }
+
+  return latestEnd;
+}
+
+export function duration(
+  table: NodeTable,
+  node: TestNode | GroupNode | SuiteNode,
+): {
+  minutes: number;
+  seconds: number;
+  milliseconds: number;
+} {
+  const startTime = findStartTimestamp(table, node);
+  const endTime = findEndTimestamp(table, node);
+  const durationInMillis = endTime - startTime;
+
+  const durationInSeconds = durationInMillis / 1000;
+  const minutes = Math.floor(durationInSeconds / 60);
+  const seconds = Math.floor(durationInSeconds % 60);
+  const milliseconds = durationInMillis % 1000;
+  return { minutes, seconds, milliseconds };
+}

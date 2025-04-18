@@ -1,9 +1,10 @@
-import { assertEquals } from "@std/assert";
+import { assert, assertEquals, assertThrows } from "@std/assert";
 import { parseSync } from "../src/parser.ts";
 import {
   childrenOfGroup,
   childrenOfSuite,
   directParentOfTest,
+  duration,
   getSegmentedName,
   parentOfGroup,
   parentsOfTest,
@@ -13,7 +14,12 @@ import {
   testsOfTable,
   totalDuration,
 } from "../src/helper.ts";
-import type { GroupNode, SuiteNode, TestNode } from "../src/types.ts";
+import type {
+  GroupNode,
+  NodeTable,
+  SuiteNode,
+  TestNode,
+} from "../src/types.ts";
 
 /**
  * Utility function to read and parse a test file
@@ -283,4 +289,85 @@ Deno.test("totalDuration - returns the total duration of a test run", async () =
     seconds: 45,
     milliseconds: 579,
   }, "The duration should match");
+});
+
+Deno.test("duration - TestNode", async () => {
+  const testResult = await parseTestFile("./sample/test_report_3.output");
+  const { table } = testResult;
+
+  // Find a test node that has a clear duration
+  const testNode = Object.values(table).find((node): node is TestNode =>
+    node.type === "testStart" &&
+    node.test.name === "Intentionally failing tests Simple assertion failure"
+  );
+  assert(testNode, "Test node not found");
+
+  const durationResult = duration(table, testNode);
+  assertEquals(durationResult, {
+    minutes: 0,
+    seconds: 0,
+    milliseconds: 52, // 3124 - 3072 = 52ms
+  });
+});
+
+Deno.test("duration - GroupNode with nested tests", async () => {
+  const testResult = await parseTestFile("./sample/test_report_3.output");
+  const { table } = testResult;
+
+  // Find the "Intentionally failing tests" group
+  const groupNode = Object.values(table).find((node): node is GroupNode =>
+    node.type === "group" &&
+    node.group.name === "Intentionally failing tests"
+  );
+  assert(groupNode, "Group node not found");
+
+  const durationResult = duration(table, groupNode);
+  assertEquals(durationResult, {
+    minutes: 0,
+    seconds: 1,
+    milliseconds: 118, // 4190 - 3072 = 1118ms
+  });
+});
+
+Deno.test("duration - SuiteNode", async () => {
+  const testResult = await parseTestFile("./sample/test_report_3.output");
+  const { table } = testResult;
+
+  // Find the suite node
+  const suiteNode = Object.values(table).find((node): node is SuiteNode =>
+    node.type === "suite"
+  );
+  assert(suiteNode, "Suite node not found");
+
+  const durationResult = duration(table, suiteNode);
+  assertEquals(durationResult, {
+    minutes: 0,
+    seconds: 4,
+    milliseconds: 190, // 4190 - 0 = 4190ms
+  });
+});
+
+Deno.test("duration - undefined time", () => {
+  const table: NodeTable = {};
+  const node: TestNode = {
+    type: "testStart",
+    time: undefined,
+    skip: false,
+    skipReason: null,
+    test: {
+      id: 1,
+      name: "Test 1",
+      suiteID: 1,
+      groupIDs: [1],
+      line: null,
+      column: null,
+      url: null,
+    },
+  };
+
+  assertThrows(
+    () => duration(table, node),
+    Error,
+    "Time is undefined",
+  );
 });
