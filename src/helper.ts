@@ -91,7 +91,7 @@ export function directParentOfTest(
  * @param node The test node.
  * @returns The segmented name of the test node.
  */
-export function getSegmentedName(table: NodeTable, node: TestNode) {
+export function getSegmentedName(table: NodeTable, node: TestNode): string[] {
   const segments: string[] = [];
   const groups = parentsOfTest(table, node);
 
