@@ -7,6 +7,7 @@ import type {
   SuiteNode,
   TestNode,
 } from "../src/types.ts";
+import { totalDuration } from "../mod.ts";
 
 /**
  * Utility function to read and parse a test file
@@ -30,7 +31,11 @@ Deno.test("parseFlutterTestOutput - basic test", async () => {
   // Validate basic structure
   assertEquals(typeof result.table, "object");
   assertEquals(Array.isArray(result.allEvents), true);
-  assertEquals(typeof result.totalDurationInSeconds, "number");
+
+  // Calculate total duration from doneEvent
+  const { minutes, seconds, milliseconds } = totalDuration(result.doneEvent);
+  const totalDurationInSeconds = minutes * 60 + seconds + milliseconds / 1000;
+  assertEquals(typeof totalDurationInSeconds, "number");
 
   // Validate event type
   const startEvent = result.allEvents.find((event: Event) =>
@@ -162,4 +167,16 @@ Deno.test("parseFlutterTestOutput - test message and error test", async () => {
     "print",
     "Message type should be 'print'",
   );
+});
+
+Deno.test("parseFlutterTestOutput - total duration test", async () => {
+  const result = await parseTestFile(
+    "./sample/test_report_1.obfuscated.output",
+  );
+  const { minutes, seconds, milliseconds } = totalDuration(
+    result.doneEvent,
+  );
+  assertEquals(minutes, 0);
+  assertEquals(seconds, 45);
+  assertEquals(milliseconds, 149);
 });
