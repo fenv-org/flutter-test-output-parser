@@ -4,7 +4,7 @@
 export type FlutterTestOutput = {
   table: NodeTable;
   allEvents: Event[];
-  totalDurationInSeconds: number;
+  doneEvent: DoneEvent;
 };
 
 export type NodeTable = {

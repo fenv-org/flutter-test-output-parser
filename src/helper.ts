@@ -1,5 +1,13 @@
 import type { GroupNode, NodeTable, SuiteNode, TestNode } from "./types.ts";
 
+export function suitesOfTable(table: NodeTable): SuiteNode[] {
+  return Object.values(table).filter((node) => node.type === "suite");
+}
+
+export function testsOfTable(table: NodeTable): TestNode[] {
+  return Object.values(table).filter((node) => node.type === "testStart");
+}
+
 export function childrenOfSuite(
   table: NodeTable,
   suite: SuiteNode,

@@ -1,4 +1,5 @@
 import type {
+  DoneEvent,
   Event,
   FlutterTestOutput,
   GroupNode,
@@ -34,22 +35,22 @@ export function parseSync(
 ): FlutterTestOutput {
   const trees: { [id: number]: SuiteNode | GroupNode | TestNode } = {};
   const allEvents: Event[] = [];
-  let totalDurationInSeconds = -1;
 
   if (typeof output === "string") {
     output = output.split("\n");
   }
 
+  let doneEvent: DoneEvent | null = null;
   for (const line of output) {
     const event = JSON.parse(line) as Event;
     addEventToTrees(trees, event);
     if (event.type === "done") {
-      totalDurationInSeconds = (event.time ?? 0) / 1000;
+      doneEvent = event;
     }
     allEvents.push(event);
   }
 
-  return { table: trees, totalDurationInSeconds, allEvents };
+  return { table: trees, allEvents, doneEvent: doneEvent! };
 }
 
 /**
@@ -79,7 +80,7 @@ export async function parseAsync(
 ): Promise<FlutterTestOutput> {
   const trees: { [id: number]: SuiteNode | GroupNode | TestNode } = {};
   const allEvents: Event[] = [];
-  let totalDurationInSeconds = -1;
+  let doneEvent: DoneEvent | null = null;
 
   const stream = typeof filePathOrStream === "string"
     ? (await Deno.open(filePathOrStream)).readable
@@ -92,12 +93,12 @@ export async function parseAsync(
     const event = JSON.parse(line) as Event;
     addEventToTrees(trees, event);
     if (event.type === "done") {
-      totalDurationInSeconds = (event.time ?? 0) / 1000;
+      doneEvent = event;
     }
     allEvents.push(event);
   }
 
-  return { table: trees, totalDurationInSeconds, allEvents };
+  return { table: trees, allEvents, doneEvent: doneEvent! };
 }
 
 function addEventToTrees(
