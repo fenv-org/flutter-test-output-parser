@@ -120,6 +120,7 @@ function addEventToTrees(
     case "group": {
       const groupTree: GroupNode = {
         ...event,
+        suite: trees.get(event.group.suiteID) as SuiteNode,
         children: [],
       };
       trees.set(event.group.id, groupTree);
