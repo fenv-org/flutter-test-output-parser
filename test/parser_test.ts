@@ -28,7 +28,7 @@ Deno.test("parseFlutterTestOutput - basic test", async () => {
   );
 
   // Validate basic structure
-  assertEquals(typeof result.trees, "object");
+  assertEquals(typeof result.table, "object");
   assertEquals(Array.isArray(result.allEvents), true);
   assertEquals(typeof result.totalDurationInSeconds, "number");
 
@@ -41,7 +41,7 @@ Deno.test("parseFlutterTestOutput - basic test", async () => {
   assertEquals(startEvent?.runnerVersion, "1.25.8");
 
   // Validate test results
-  const testNodes = Object.values(result.trees).filter((
+  const testNodes = Object.values(result.table).filter((
     node,
   ): node is TestNode => "test" in node && "done" in node);
   assertEquals(testNodes.length > 0, true);
@@ -87,7 +87,7 @@ Deno.test("parseFlutterTestOutput - group structure test", async () => {
   );
 
   // Validate group structure
-  const allNodes = Object.values(result.trees);
+  const allNodes = Object.values(result.table);
   const suiteNodes = allNodes.filter((node): node is SuiteNode =>
     node.type === "suite"
   );
@@ -132,7 +132,7 @@ Deno.test("parseFlutterTestOutput - test message and error test", async () => {
   );
 
   // Validate test messages and errors
-  const testNodes = Object.values(result.trees).filter((
+  const testNodes = Object.values(result.table).filter((
     node,
   ): node is TestNode => "test" in node && "done" in node);
 

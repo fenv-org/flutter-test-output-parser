@@ -1,4 +1,63 @@
-import type { TestNode } from "./types.ts";
+import type { GroupNode, NodeTable, SuiteNode, TestNode } from "./types.ts";
+
+export function childrenOfSuite(
+  table: NodeTable,
+  suite: SuiteNode,
+): (GroupNode | TestNode)[] {
+  return suite.children.map((id) => table[id])
+    .filter((node) => node.type !== "suite");
+}
+
+export function childrenOfGroup(
+  table: NodeTable,
+  group: GroupNode,
+): (GroupNode | TestNode)[] {
+  return group.children.map((id) => table[id]).filter((node) =>
+    node.type !== "suite"
+  );
+}
+
+export function suiteOfGroup(table: NodeTable, group: GroupNode): SuiteNode {
+  const suite = table[group.group.suiteID];
+  if (suite.type !== "suite") {
+    throw new Error("Suite not found");
+  }
+  return suite;
+}
+
+export function parentOfGroup(
+  table: NodeTable,
+  group: GroupNode,
+): SuiteNode | GroupNode | null {
+  if (group.group.parentID === null) {
+    return null;
+  }
+  return table[group.group.parentID] as SuiteNode | GroupNode;
+}
+
+export function suiteOfTest(table: NodeTable, test: TestNode): SuiteNode {
+  const suite = table[test.test.suiteID];
+  if (suite.type !== "suite") {
+    throw new Error("Suite not found");
+  }
+  return suite;
+}
+
+export function parentsOfTest(
+  table: NodeTable,
+  test: TestNode,
+): GroupNode[] {
+  return test.test.groupIDs.map((id) => table[id])
+    .filter((node) => node.type === "group");
+}
+
+export function directParentOfTest(
+  table: NodeTable,
+  test: TestNode,
+): GroupNode | null {
+  const parents = parentsOfTest(table, test);
+  return parents?.[0] ?? null;
+}
 
 /**
  * Returns the segmented name of a test node.
@@ -18,9 +77,9 @@ import type { TestNode } from "./types.ts";
  * @param node The test node.
  * @returns The segmented name of the test node.
  */
-export function getSegmentedName(node: TestNode) {
+export function getSegmentedName(table: NodeTable, node: TestNode) {
   const segments: string[] = [];
-  const groups = node.parent.toReversed();
+  const groups = parentsOfTest(table, node).toReversed();
   let remainingName = node.test.name;
   while (groups.length > 0) {
     const group = groups.pop()!;

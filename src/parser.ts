@@ -49,7 +49,7 @@ export function parseSync(
     allEvents.push(event);
   }
 
-  return { trees, totalDurationInSeconds, allEvents };
+  return { table: trees, totalDurationInSeconds, allEvents };
 }
 
 /**
@@ -97,7 +97,7 @@ export async function parseAsync(
     allEvents.push(event);
   }
 
-  return { trees, totalDurationInSeconds, allEvents };
+  return { table: trees, totalDurationInSeconds, allEvents };
 }
 
 function addEventToTrees(
@@ -120,39 +120,17 @@ function addEventToTrees(
     case "group": {
       const groupTree: GroupNode = {
         ...event,
-        suite: trees[event.group.suiteID] as SuiteNode,
         children: [],
       };
       trees[event.group.id] = groupTree;
-      if (event.group.parentID) {
-        const parent = trees[event.group.parentID];
-        if (parent?.type === "suite" || parent?.type === "group") {
-          groupTree.parent = parent;
-          parent.children.push(groupTree);
-        }
-      } else {
-        const parent = trees[event.group.suiteID];
-        if (parent?.type === "suite") {
-          groupTree.parent = parent;
-          parent.children.push(groupTree);
-        }
-      }
       break;
     }
 
     case "testStart": {
       const node: TestNode = {
         ...event,
-        suite: trees[event.test.suiteID] as SuiteNode,
-        parent: [],
       };
       trees[event.test.id] = node;
-      for (const groupID of event.test.groupIDs) {
-        const group = trees[groupID];
-        if (group?.type === "group") {
-          node.parent.push(group);
-        }
-      }
       break;
     }
 
