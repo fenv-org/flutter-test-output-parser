@@ -124,6 +124,20 @@ function addEventToTrees(
         children: [],
       };
       trees[event.group.id] = groupTree;
+
+      // Add this group to its parent's children
+      if (event.group.parentID !== null) {
+        const parent = trees[event.group.parentID];
+        if (parent && (parent.type === "suite" || parent.type === "group")) {
+          parent.children.push(event.group.id);
+        }
+      } else {
+        // If no parent group, add to suite
+        const suite = trees[event.group.suiteID];
+        if (suite && suite.type === "suite") {
+          suite.children.push(event.group.id);
+        }
+      }
       break;
     }
 
@@ -132,6 +146,21 @@ function addEventToTrees(
         ...event,
       };
       trees[event.test.id] = node;
+
+      // Add this test to its direct parent group's children
+      if (event.test.groupIDs.length > 0) {
+        const lastGroupId = event.test.groupIDs[event.test.groupIDs.length - 1];
+        const parent = trees[lastGroupId];
+        if (parent && (parent.type === "suite" || parent.type === "group")) {
+          parent.children.push(event.test.id);
+        }
+      } else {
+        // If no parent group, add to suite
+        const suite = trees[event.test.suiteID];
+        if (suite && suite.type === "suite") {
+          suite.children.push(event.test.id);
+        }
+      }
       break;
     }
 

@@ -93,14 +93,37 @@ export function directParentOfTest(
  */
 export function getSegmentedName(table: NodeTable, node: TestNode) {
   const segments: string[] = [];
-  const groups = parentsOfTest(table, node).toReversed();
-  let remainingName = node.test.name;
-  while (groups.length > 0) {
-    const group = groups.pop()!;
-    segments.push(group.group.name);
-    remainingName = remainingName.slice(group.group.name.length + 1);
+  const groups = parentsOfTest(table, node);
+
+  // Add all group names as segments, including empty ones
+  for (let i = 0; i < groups.length; i++) {
+    const group = groups[i];
+    const parentName = i > 0 ? groups[i - 1].group.name : "";
+    const currentName = group.group.name;
+
+    if (currentName === "") {
+      segments.push("");
+    } else if (parentName !== "" && currentName.startsWith(parentName + " ")) {
+      segments.push(currentName.slice(parentName.length + 1));
+    } else {
+      segments.push(currentName);
+    }
   }
-  segments.push(remainingName);
+
+  // Extract the test name by removing the last group name
+  let testName = node.test.name;
+  if (groups.length > 0) {
+    const lastGroup = groups[groups.length - 1];
+    if (lastGroup.group.name !== "") {
+      const lastGroupName = lastGroup.group.name + " ";
+      if (testName.endsWith(lastGroupName)) {
+        testName = testName.slice(0, -lastGroupName.length);
+      }
+      testName = testName.slice(lastGroupName.length);
+    }
+  }
+
+  segments.push(testName);
   return segments;
 }
 
