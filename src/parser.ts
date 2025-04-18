@@ -141,16 +141,29 @@ function addEventToTrees(
     }
 
     case "testStart": {
-      const testTree: TestNode = {
+      const node: TestNode = {
         ...event,
         suite: trees.get(event.test.suiteID) as SuiteNode,
         parent: [],
+        segmentedName: () => [],
       };
-      trees.set(event.test.id, testTree);
+      node.segmentedName = () => {
+        const segments: string[] = [];
+        const groups = node.parent.toReversed();
+        let remainingName = node.test.name;
+        while (groups.length > 0) {
+          const group = groups.pop()!;
+          segments.push(group.group.name);
+          remainingName = remainingName.slice(group.group.name.length + 1);
+        }
+        segments.push(remainingName);
+        return segments;
+      };
+      trees.set(event.test.id, node);
       for (const groupID of event.test.groupIDs) {
         const group = trees.get(groupID);
         if (group?.type === "group") {
-          testTree.parent.push(group);
+          node.parent.push(group);
         }
       }
       break;

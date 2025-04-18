@@ -32,6 +32,8 @@ export type TestNode = TestStartEvent & {
   done?: TestDoneEvent;
   print?: MessageEvent[];
   error?: ErrorEvent[];
+
+  segmentedName: () => string[];
 };
 
 /**
@@ -40,7 +42,6 @@ export type TestNode = TestStartEvent & {
 export type Event =
   | StartEvent
   | SuiteEvent
-  | TestEvent
   | GroupEvent
   | TestStartEvent
   | MessageEvent
@@ -149,16 +150,6 @@ export type MessageEvent = EventCommon & {
   testID: number;
   messageType: "print";
   message: string;
-};
-
-/**
- * Represents a test element in the Flutter test output.
- */
-export type TestEvent = EventCommon & {
-  type: "test";
-  error?: string;
-  stackTrace?: string;
-  isFailure?: boolean;
 };
 
 /**
