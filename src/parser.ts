@@ -32,7 +32,7 @@ import { TextLineStream } from "@std/streams";
 export function parseSync(
   output: string | string[] | Generator<string>,
 ): FlutterTestOutput {
-  const trees = new Map<number, SuiteNode | GroupNode | TestNode>();
+  const trees: { [id: number]: SuiteNode | GroupNode | TestNode } = {};
   const allEvents: Event[] = [];
   let totalDurationInSeconds = -1;
 
@@ -77,7 +77,7 @@ export function parseSync(
 export async function parseAsync(
   filePathOrStream: string | ReadableStream<Uint8Array<ArrayBuffer>>,
 ): Promise<FlutterTestOutput> {
-  const trees = new Map<number, SuiteNode | GroupNode | TestNode>();
+  const trees: { [id: number]: SuiteNode | GroupNode | TestNode } = {};
   const allEvents: Event[] = [];
   let totalDurationInSeconds = -1;
 
@@ -101,7 +101,7 @@ export async function parseAsync(
 }
 
 function addEventToTrees(
-  trees: Map<number, SuiteNode | GroupNode | TestNode>,
+  trees: { [id: number]: SuiteNode | GroupNode | TestNode },
   event: Event,
 ) {
   switch (event.type) {
@@ -113,25 +113,25 @@ function addEventToTrees(
         ...event,
         children: [],
       };
-      trees.set(event.suite.id, suiteTree);
+      trees[event.suite.id] = suiteTree;
       break;
     }
 
     case "group": {
       const groupTree: GroupNode = {
         ...event,
-        suite: trees.get(event.group.suiteID) as SuiteNode,
+        suite: trees[event.group.suiteID] as SuiteNode,
         children: [],
       };
-      trees.set(event.group.id, groupTree);
+      trees[event.group.id] = groupTree;
       if (event.group.parentID) {
-        const parent = trees.get(event.group.parentID);
+        const parent = trees[event.group.parentID];
         if (parent?.type === "suite" || parent?.type === "group") {
           groupTree.parent = parent;
           parent.children.push(groupTree);
         }
       } else {
-        const parent = trees.get(event.group.suiteID);
+        const parent = trees[event.group.suiteID];
         if (parent?.type === "suite") {
           groupTree.parent = parent;
           parent.children.push(groupTree);
@@ -143,12 +143,12 @@ function addEventToTrees(
     case "testStart": {
       const node: TestNode = {
         ...event,
-        suite: trees.get(event.test.suiteID) as SuiteNode,
+        suite: trees[event.test.suiteID] as SuiteNode,
         parent: [],
       };
-      trees.set(event.test.id, node);
+      trees[event.test.id] = node;
       for (const groupID of event.test.groupIDs) {
-        const group = trees.get(groupID);
+        const group = trees[groupID];
         if (group?.type === "group") {
           node.parent.push(group);
         }
@@ -157,7 +157,7 @@ function addEventToTrees(
     }
 
     case "testDone": {
-      const testCandidate = trees.get(event.testID);
+      const testCandidate = trees[event.testID];
       if (testCandidate?.type === "testStart") {
         testCandidate.done = event;
       }
@@ -165,7 +165,7 @@ function addEventToTrees(
     }
 
     case "print": {
-      const testCandidate = trees.get(event.testID);
+      const testCandidate = trees[event.testID];
       if (testCandidate?.type === "testStart") {
         testCandidate.print = testCandidate.print || [];
         testCandidate.print.push(event);
@@ -174,7 +174,7 @@ function addEventToTrees(
     }
 
     case "error": {
-      const testCandidate = trees.get(event.testID);
+      const testCandidate = trees[event.testID];
       if (testCandidate?.type === "testStart") {
         testCandidate.error = testCandidate.error
           ? [...testCandidate.error, event]

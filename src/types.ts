@@ -2,7 +2,9 @@
  * Represents the parsed output of a Flutter test command.
  */
 export type FlutterTestOutput = {
-  trees: Map<number, SuiteNode | GroupNode | TestNode>;
+  trees: {
+    [id: number]: SuiteNode | GroupNode | TestNode;
+  };
   allEvents: Event[];
   totalDurationInSeconds: number;
 };
