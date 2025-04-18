@@ -32,8 +32,6 @@ export type TestNode = TestStartEvent & {
   done?: TestDoneEvent;
   print?: MessageEvent[];
   error?: ErrorEvent[];
-
-  segmentedName: () => string[];
 };
 
 /**

@@ -19,5 +19,6 @@
  * @module
  */
 
+export * from "./src/helper.ts";
 export * from "./src/parser.ts";
 export * from "./src/types.ts";
