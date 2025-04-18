@@ -1,4 +1,10 @@
-import type { GroupNode, NodeTable, SuiteNode, TestNode } from "./types.ts";
+import type {
+  DoneEvent,
+  GroupNode,
+  NodeTable,
+  SuiteNode,
+  TestNode,
+} from "./types.ts";
 
 export function suitesOfTable(table: NodeTable): SuiteNode[] {
   return Object.values(table).filter((node) => node.type === "suite");
@@ -96,4 +102,20 @@ export function getSegmentedName(table: NodeTable, node: TestNode) {
   }
   segments.push(remainingName);
   return segments;
+}
+
+export function totalDuration(doneEvent: DoneEvent): {
+  minutes: number;
+  seconds: number;
+  milliseconds: number;
+} {
+  const durationInMillis = doneEvent.time;
+  if (durationInMillis === null || durationInMillis === undefined) {
+    throw new Error("Duration is null or undefined");
+  }
+  const durationInSeconds = durationInMillis / 1000;
+  const minutes = Math.floor(durationInSeconds / 60);
+  const seconds = Math.floor(durationInSeconds % 60);
+  const milliseconds = durationInMillis % 1000;
+  return { minutes, seconds, milliseconds };
 }
